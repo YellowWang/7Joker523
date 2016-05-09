@@ -17,7 +17,7 @@ public class Card : MonoBehaviour, IComparable
     public Sprite front;
     public int rank;
     public CardSuit suit;
-    [HideInInspector] public Player player;
+    [HideInInspector] public HumanPlayer player;
 
     // Use this for initialization
     void Awake () {
@@ -30,16 +30,14 @@ public class Card : MonoBehaviour, IComparable
 
     }
 
-    public void Turn()
+    public void ShowFront()
     {
-        if (image.overrideSprite == front)
-        {
-            image.overrideSprite = null;
-        }
-        else
-        {
-            image.overrideSprite = front;
-        }
+        image.overrideSprite = front;
+    }
+
+    public void ShowBack()
+    {
+        image.overrideSprite = null;
     }
 
     public int CompareTo(object obj)

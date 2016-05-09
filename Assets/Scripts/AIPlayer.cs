@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class AIPlayer : Player {
-    public override void MyTurn(List<Card> hand)
+    public override void MyTurn(List<Card> currentOutCards)
     {
         if (CurrentRoundPassed)
         {
@@ -13,49 +13,66 @@ public class AIPlayer : Player {
             }
         }
 
-        var myHand = new List<Card>();
-        if (hand.Count == 0)
+        var myOutCards = new List<Card>();
+        if (currentOutCards.Count == 0)
         {
-            myHand.Add(Cards[0]);
+            myOutCards.Add(Cards[0]);
             for (int i = 1; i < Cards.Count; ++i)
             {
-                if (Cards[i].rank == myHand[0].rank)
+                if (Cards[i].rank == myOutCards[0].rank)
                 {
-                    myHand.Add(Cards[i]);
+                    myOutCards.Add(Cards[i]);
+                }
+                else
+                {
+                    break;
                 }
             }
-            Cards.RemoveRange(0, myHand.Count);
-            TurnFinished(this, myHand);
+            Cards.RemoveRange(0, myOutCards.Count);
         }
         else
         {
             for (int i = 0; i < Cards.Count; ++i)
             {
-                if (Cards[i] > hand[hand.Count - 1])
+                if (Cards[i] > currentOutCards[currentOutCards.Count - 1])
                 {
                     int count = 1;
-                    for (int j = i; j < Cards.Count; ++j)
+                    for (int j = i + 1; j < Cards.Count; ++j)
                     {
                         if (Cards[i].rank == Cards[j].rank)
                         {
                             count++;
                         }
+                        else
+                        {
+                            break;
+                        }
                     }
 
-                    if (count >= hand.Count)
+                    if (count >= currentOutCards.Count)
                     {
-                        for (int k = 0; k < hand.Count; ++k)
+                        for (int k = 0; k < currentOutCards.Count; ++k)
                         {
-                            myHand.Add(Cards[i + k]);
+                            myOutCards.Add(Cards[i + k]);
                         }
-                        Cards.RemoveRange(i, hand.Count);
+                        Cards.RemoveRange(i, currentOutCards.Count);
+                        break;
                     }
                 }
 
                 
             }
         }
-
-        TurnFinished(this, myHand);
+        
+        // No out cards means passed this round
+        if (myOutCards.Count == 0)
+        {
+            CurrentRoundPassed = true;
+        }
+        else
+        {
+            ThisRoundOutCards.AddRange(myOutCards);
+        }
+        TurnFinished(this, myOutCards);
     }
 }

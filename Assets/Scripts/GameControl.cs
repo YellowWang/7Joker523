@@ -14,10 +14,16 @@ public class GameControl : MonoBehaviour {
     private int LastOutCardPlayer;
     private int CurrentTurnPlayer;
     private int points = 0;
+    public delegate void DealDoneEventHandler();
+    public event DealDoneEventHandler DealDone;
+    public float DealCardInterval = 0.2f;
 
 	// Use this for initialization
 	void Start()
     {
+        // Register deal done event
+        DealDone += OnDealDone;
+
         // Find all cards 
         var CardGameObjects = GameObject.FindGameObjectsWithTag("Card");
         Cards = new List<Card>();
@@ -44,16 +50,13 @@ public class GameControl : MonoBehaviour {
         Shuffle();
 
         // Deal the first 5 cards to each player
-        foreach (var player in Players)
-        {
-            while (player.NeedMoreCard())
-            {
-                Deal(player);
-            }
-        }
+        StartCoroutine(InitialDeal());
 
-        // Start
-        StartGame();
+        // Start with random player
+        CurrentTurnPlayer = UnityEngine.Random.Range(0, Players.Length);
+
+        // Deal cards
+        InitialDeal();
     }
 	
     int GetCardsPoints(List<Card> cards)
@@ -151,21 +154,9 @@ public class GameControl : MonoBehaviour {
         for (int i = 0; i < Players.Length; ++i)
         {
             Players[i].PrepareForNewRound();
-            while (Players[DrawPlayer].NeedMoreCard())
-            {
-                Deal(Players[DrawPlayer]);
-            }
-            DrawPlayer = NextPlayer(DrawPlayer);
         }
 
-        // Start with last round winner 
-        Players[CurrentTurnPlayer].MyTurn(CurrentOutCard);
-    }
-
-    void StartGame()
-    {
-        CurrentTurnPlayer = UnityEngine.Random.Range(0, Players.Length);
-        Players[CurrentTurnPlayer].MyTurn(CurrentOutCard);
+        StartCoroutine(RoundDeal());
     }
 
     void AdjustCardsDepth()
@@ -195,11 +186,53 @@ public class GameControl : MonoBehaviour {
         }
     }
 
-    void Deal(Player player)
+    // Each one take one card in turns
+    IEnumerator InitialDeal()
     {
-        var card = Cards[0];
-        Cards.RemoveAt(0);
-        card.player = player as HumanPlayer;
-        player.AddCard(card);
+        int needCards = 0;
+        for (int i = 0; i < Players.Length; ++i)
+        {
+            needCards += Players[i].NeedCards();
+        }
+
+        while (needCards > 0)
+        {
+            for (int i = 0; i < Players.Length; ++i)
+            {
+                if (Players[i].NeedCards() > 0)
+                {
+                    var card = Cards[0];
+                    Cards.RemoveAt(0);
+                    card.player = Players[i] as HumanPlayer;
+                    Players[i].AddCard(card);
+                    needCards--;
+                    yield return new WaitForSeconds(DealCardInterval);
+                }
+            }
+        }
+
+        DealDone();
+    }
+    
+    // Everyone keeps taking cards until got enough
+    IEnumerator RoundDeal()
+    {
+        for (int i = 0; i < Players.Length; ++i)
+        {
+            while (Players[i].NeedCards() > 0)
+            {
+                var card = Cards[0];
+                Cards.RemoveAt(0);
+                card.player = Players[i] as HumanPlayer;
+                Players[i].AddCard(card);
+                yield return new WaitForSeconds(DealCardInterval);
+            }
+        }
+
+        DealDone();
+    }
+
+    void OnDealDone() {
+        Players[CurrentTurnPlayer].MyTurn(CurrentOutCard);
     }
 }

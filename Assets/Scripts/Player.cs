@@ -8,7 +8,7 @@ abstract public class Player : MonoBehaviour
     protected List<Card> Cards = new List<Card>();
     [HideInInspector] public int Idx;
     protected List<Card> ThisRoundOutCards = new List<Card>();
-    public float CardDistance = 30.0f;
+    public float CardDistance = 25.0f;
     [HideInInspector] public bool CurrentRoundPassed = false;
     [HideInInspector] public int points = 0;
 
@@ -27,10 +27,10 @@ abstract public class Player : MonoBehaviour
         int mid = Cards.Count / 2;
         for (int i = 0; i < Cards.Count; ++i)
         {
-            Cards[i].transform.position = transform.position;
-            Cards[i].transform.rotation = transform.rotation;
-            Cards[i].transform.Translate(Cards[i].transform.up * 80, Space.World);
-            Cards[i].transform.Translate(Cards[i].transform.right * (i - mid) * CardDistance, Space.World);
+            var position = transform.position;
+            position += Cards[i].transform.up * 80;
+            position += Cards[i].transform.right * (i - mid) * CardDistance;
+            Cards[i].StartMoveTo(position);
         }
     }
 
@@ -47,8 +47,8 @@ abstract public class Player : MonoBehaviour
         CurrentRoundPassed = false;
     }
 
-    public bool NeedMoreCard()
+    public int NeedCards()
     {
-        return Cards.Count < 5;
+        return 5 - Cards.Count;
     }
 }

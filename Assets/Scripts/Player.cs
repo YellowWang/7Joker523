@@ -17,11 +17,13 @@ abstract public class Player : MonoBehaviour
 
     public virtual void AddCard(Card card)
     {
+        Debug.Log(string.Format("Player {0} AddCard {1}", ToString(), card));
         Cards.Add(card);
+        card.transform.SetParent(transform);
         RearrangeCards();
     }
 
-    void RearrangeCards()
+    protected void RearrangeCards()
     {
         Cards.Sort();
         int mid = Cards.Count / 2;
@@ -31,6 +33,7 @@ abstract public class Player : MonoBehaviour
             position += Cards[i].transform.up * 80;
             position += Cards[i].transform.right * (i - mid) * CardDistance;
             Cards[i].StartMoveTo(position);
+            Cards[i].transform.SetSiblingIndex(i);
         }
     }
 
@@ -39,7 +42,14 @@ abstract public class Player : MonoBehaviour
         CurrentRoundPassed = false;
     }
 
-    abstract public void MyTurn(List<Card> currentOutCards);
+    public virtual void MyTurn(List<Card> opponentCards)
+    {
+        Debug.Log(string.Format("{0}'s turn, opponent cards:", ToString()));
+        foreach (var card in opponentCards)
+        {
+            Debug.Log(card.ToString());
+        }
+    }
 
     public void PrepareForNewRound()
     {
@@ -50,5 +60,31 @@ abstract public class Player : MonoBehaviour
     public int NeedCards()
     {
         return 5 - Cards.Count;
+    }
+
+    public override string ToString()
+    {
+        return string.Format("Player {0}", name);
+    }
+
+    public void PutOutCards(List<Card> outCards)
+    {
+        outCards.Sort();
+        ThisRoundOutCards.AddRange(outCards);
+        var outCardsAnchor = transform.Find("OutCardsAnchor");
+        for (int i = 0; i < outCards.Count; ++i)
+        {
+            Debug.Log(string.Format("{0} put out card {1}", ToString(), outCards[i].ToString()));
+
+            outCards[i].transform.position = outCardsAnchor.transform.position;
+            outCards[i].transform.rotation = Quaternion.identity;
+            outCards[i].transform.Translate(Cards[i].transform.right * (i + ThisRoundOutCards.Count) * CardDistance, Space.World);
+            outCards[i].ShowFront();
+        }
+
+        for (int i = 0; i < ThisRoundOutCards.Count; ++i)
+        {
+            ThisRoundOutCards[i].transform.SetSiblingIndex(i);
+        }
     }
 }

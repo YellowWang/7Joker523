@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class AIPlayer : Player {
-    public override void MyTurn(List<Card> currentOutCards)
+    public override void MyTurn(List<Card> opponentCards)
     {
+        base.MyTurn(opponentCards);
+
         if (CurrentRoundPassed)
         {
             if (TurnFinished != null)
@@ -13,28 +15,32 @@ public class AIPlayer : Player {
             }
         }
 
-        var myOutCards = new List<Card>();
-        if (currentOutCards.Count == 0)
+        var outCards = new List<Card>();
+        // I am the first one put out cards
+        if (opponentCards.Count == 0)
         {
-            myOutCards.Add(Cards[0]);
+            outCards.Add(Cards[0]);
+            Cards.Remove(Cards[0]);
             for (int i = 1; i < Cards.Count; ++i)
             {
-                if (Cards[i].rank == myOutCards[0].rank)
+                if (Cards[i].rank == outCards[0].rank)
                 {
-                    myOutCards.Add(Cards[i]);
+                    outCards.Add(Cards[i]);
+                    Cards.Remove(Cards[i]);
                 }
                 else
                 {
                     break;
                 }
             }
-            Cards.RemoveRange(0, myOutCards.Count);
+            
         }
+        // I need to anwser others' cards
         else
         {
             for (int i = 0; i < Cards.Count; ++i)
             {
-                if (Cards[i] > currentOutCards[currentOutCards.Count - 1])
+                if (Cards[i] > opponentCards[opponentCards.Count - 1])
                 {
                     int count = 1;
                     for (int j = i + 1; j < Cards.Count; ++j)
@@ -49,13 +55,13 @@ public class AIPlayer : Player {
                         }
                     }
 
-                    if (count >= currentOutCards.Count)
+                    if (count >= opponentCards.Count)
                     {
-                        for (int k = 0; k < currentOutCards.Count; ++k)
+                        for (int k = 0; k < opponentCards.Count; ++k)
                         {
-                            myOutCards.Add(Cards[i + k]);
+                            outCards.Add(Cards[i + k]);
+                            Cards.Remove(Cards[i + k]);
                         }
-                        Cards.RemoveRange(i, currentOutCards.Count);
                         break;
                     }
                 }
@@ -63,16 +69,16 @@ public class AIPlayer : Player {
                 
             }
         }
-        
+
+        PutOutCards(outCards);
+        RearrangeCards();
+
         // No out cards means passed this round
-        if (myOutCards.Count == 0)
+        if (outCards.Count == 0)
         {
             CurrentRoundPassed = true;
         }
-        else
-        {
-            ThisRoundOutCards.AddRange(myOutCards);
-        }
-        TurnFinished(this, myOutCards);
+
+        TurnFinished(this, outCards);
     }
 }

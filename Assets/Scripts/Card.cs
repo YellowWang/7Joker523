@@ -2,13 +2,14 @@
 using UnityEngine.UI;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 public enum CardSuit
 {
-    Spade,
-    Heart,
-    Club,
     Diamond,
+    Club,
+    Heart,
+    Spade,
 }
 
 public class Card : MonoBehaviour, IComparable
@@ -83,7 +84,7 @@ public class Card : MonoBehaviour, IComparable
     {
         if (player != null)
         {
-            player.PickCard(this);
+            player.SelectCard(this);
         }
     }
 
@@ -122,4 +123,14 @@ public class Card : MonoBehaviour, IComparable
         var args = new Vector3[2] { transform.position, position };
         StartCoroutine(MoveTo(args));
     }
+
+    public override string ToString()
+    {
+        return string.Format("Card {0} {1}", rank, suit);
+    }
+}
+
+class MultipleCards
+{
+    protected List<Card> Cards = new List<Card>();
 }

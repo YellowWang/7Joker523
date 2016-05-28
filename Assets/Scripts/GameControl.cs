@@ -18,6 +18,12 @@ public class GameControl : MonoBehaviour {
     public event DealDoneEventHandler DealDone;
     public float DealCardInterval = 0.2f;
 
+    void Awake()
+    {
+        // Turn this off when release
+        Debug.logger.logEnabled = true;
+    }
+
 	// Use this for initialization
 	void Start()
     {
@@ -44,7 +50,7 @@ public class GameControl : MonoBehaviour {
         }
 
         // Deside cards depth
-        AdjustCardsDepth();
+        //AdjustCardsDepth();
 
         // Shuffle the cards
         Shuffle();
@@ -150,7 +156,6 @@ public class GameControl : MonoBehaviour {
         points = 0;
 
         // Deal card to player who don't have enough cards
-        var DrawPlayer = LastOutCardPlayer;
         for (int i = 0; i < Players.Length; ++i)
         {
             Players[i].PrepareForNewRound();
@@ -219,7 +224,7 @@ public class GameControl : MonoBehaviour {
     {
         for (int i = 0; i < Players.Length; ++i)
         {
-            while (Players[i].NeedCards() > 0)
+            while (Players[i].NeedCards() > 0 && Cards.Count > 0)
             {
                 var card = Cards[0];
                 Cards.RemoveAt(0);
